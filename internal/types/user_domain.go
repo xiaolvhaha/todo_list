@@ -1,8 +1,8 @@
 package types
 
 type UserDomain struct {
-	ID       int64
-	Username string
+	Id       int64
+	Name     string
 	Email    string
 	Password string
 }
