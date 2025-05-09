@@ -2,29 +2,26 @@ package dao
 
 import (
 	"context"
-	"gorm.io/gorm"
-	"todolist/internal/service"
-)
+	biz "todolist/internal/biz"
 
-type User struct {
-	id       int64  `gorm:"primaryKey"`
-	name     string `gorm:"type:varchar(255)"`
-	email    string `gorm:"type:varchar(255)"`
-	password string `gorm:"type:varchar(255)"`
-}
+	"gorm.io/gorm"
+)
 
 type GORMUserDao struct {
 	db *gorm.DB
 }
 
-func NewGORMUserDao(db *gorm.DB) service.UserDao {
+func NewGORMUserDao(db *gorm.DB) *GORMUserDao {
 	return &GORMUserDao{
 		db: db,
 	}
 }
 
-func (G GORMUserDao) FindById(ctx context.Context, id int64) (service.UserDao, error) {
-	//TODO implement me
-	panic("implement me")
+func (ud *GORMUserDao) FindById(ctx context.Context, id int64) (*biz.User, error) {
+	var user biz.User
+	err := ud.db.First(&user, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
-
