@@ -2,7 +2,7 @@ package biz
 
 import (
 	"context"
-	service "todolist/internal/service"
+	"todolist/internal/service"
 	"todolist/internal/types"
 	"todolist/pkg/logger"
 )
@@ -16,6 +16,8 @@ type User struct {
 
 type UserDao interface {
 	FindById(ctx context.Context, id int64) (*User, error)
+	FindByPasswordAndEmail(ctx context.Context, email, password string) (*User, error)
+	Create(ctx context.Context, user *User) (int64, error)
 }
 
 type UserUsecase struct {
@@ -23,7 +25,19 @@ type UserUsecase struct {
 	l       logger.Logger
 }
 
-func NewUserBiz(userDao UserDao, l logger.Logger) *UserUsecase {
+func (u *UserUsecase) FindByPasswordAndEmail(ctx context.Context, email, password string) (*types.UserDomain, error) {
+	user, err := u.userDao.FindByPasswordAndEmail(ctx, email, password)
+	if err != nil {
+		return nil, err
+	}
+	return u.toDomain(user), nil
+}
+
+func (u *UserUsecase) CreateUser(ctx context.Context, user *types.UserDomain) (int64, error) {
+	return u.userDao.Create(ctx, u.toModel(user))
+}
+
+func NewUserBiz(userDao UserDao, l logger.Logger) service.UserBiz {
 	return &UserUsecase{
 		userDao: userDao,
 		l:       l,
