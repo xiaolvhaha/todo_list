@@ -3,12 +3,13 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"net/http"
 	"strings"
 	"todolist/internal/types"
 )
 
-func ValidateLogin() gin.HandlerFunc {
+func ValidateLogin(cache redis.Cmdable) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		path := c.Request.URL.Path
@@ -29,6 +30,19 @@ func ValidateLogin() gin.HandlerFunc {
 		}
 
 		tokenString := split[1]
+
+		// check if signout
+		result, _ := cache.Get(c, tokenString).Result()
+		//if err2 != nil {
+		//	c.AbortWithStatusJSON(http.StatusUnauthorized, types.Result{})
+		//}
+		if result != "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, types.Result{
+				Code: 4,
+				Msg:  "invalid token",
+				Data: nil,
+			})
+		}
 
 		token, err := jwt.ParseWithClaims(tokenString, &types.UserClaim{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(types.UserSignKey), nil

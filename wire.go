@@ -23,6 +23,7 @@ func InitApp() *gin.Engine {
 		service.NewUserService,
 		dao.NewGORMUserDao,
 		api.NewUserApi,
+		ioc.InitRedis,
 	)
 
 	return nil

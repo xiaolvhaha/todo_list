@@ -4,3 +4,7 @@ datasource:
   username: root
   password: root
   dbName: todo_list
+
+redis:
+  url: localhost
+  port: 6379
