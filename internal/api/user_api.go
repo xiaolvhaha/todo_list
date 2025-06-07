@@ -15,7 +15,7 @@ import (
 	"todolist/pkg/logger"
 )
 
-func (u *UserApi) RegisterUserRouter(engine *gin.Engine) *gin.Engine {
+func (u *UserApi) RegisterUserRouter(engine *gin.Engine) {
 	group := engine.Group("user")
 	group.GET("/:id", u.GetUserById)
 	group.POST("/register", u.Register)
@@ -23,7 +23,6 @@ func (u *UserApi) RegisterUserRouter(engine *gin.Engine) *gin.Engine {
 	group.GET("/info", u.Info)
 	group.POST("/signout", u.signout)
 
-	return engine
 }
 
 func (u *UserApi) GetUserById(ctx *gin.Context) {

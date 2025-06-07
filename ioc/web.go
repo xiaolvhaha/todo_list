@@ -7,9 +7,11 @@ import (
 	"todolist/pkg/middleware"
 )
 
-func InitGin(userApi *api.UserApi, cache redis.Cmdable) *gin.Engine {
+func InitGin(userApi *api.UserApi, categoryApi *api.CategoryApi, taskApi *api.TaskApi, cache redis.Cmdable) *gin.Engine {
 	server := gin.Default()
 	server.Use(middleware.ValidateLogin(cache))
 	userApi.RegisterUserRouter(server)
+	categoryApi.RegisterRouter(server)
+	taskApi.RegisterRouter(server)
 	return server
 }

@@ -24,6 +24,14 @@ func InitApp() *gin.Engine {
 		dao.NewGORMUserDao,
 		api.NewUserApi,
 		ioc.InitRedis,
+		api.NewCategoryApi,
+		service.NewCategoryService,
+		biz.NewCategoryBiz,
+		dao.NewGORMCategoryDao,
+		api.NewTaskApi,
+		service.NewTaskService,
+		biz.NewTaskUseCase,
+		dao.NewGORMTaskDao,
 	)
 
 	return nil
