@@ -7,3 +7,7 @@ type CreateTaskRequest struct {
 	Priority   int64  `json:"priority"`
 	Deadline   string `json:"deadline"`
 }
+
+type GetTaskListRequest struct {
+	Page int64 `json:"page"`
+}

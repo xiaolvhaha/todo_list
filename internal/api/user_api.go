@@ -40,12 +40,13 @@ func (u *UserApi) GetUserById(ctx *gin.Context) {
 
 func (u *UserApi) Register(ctx *gin.Context) {
 	var req request.RegisterRequest
-	if err := ctx.Bind(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, types.Result{
 			Code: 4,
-			Msg:  "INVALID PARAM",
+			Msg:  err.Error(),
 			Data: nil,
 		})
+		return
 	}
 	id, err := u.us.CreateUser(ctx, &types.UserDomain{
 		Name:     req.Name,

@@ -13,7 +13,7 @@ func ValidateLogin(cache redis.Cmdable) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		path := c.Request.URL.Path
-		if path == "/user/login" {
+		if path == "/user/login" || path == "/user/register" {
 			return
 		}
 
@@ -27,6 +27,8 @@ func ValidateLogin(cache redis.Cmdable) gin.HandlerFunc {
 				Msg:  "invalid session",
 				Data: nil,
 			})
+
+			return
 		}
 
 		tokenString := split[1]
@@ -42,6 +44,7 @@ func ValidateLogin(cache redis.Cmdable) gin.HandlerFunc {
 				Msg:  "invalid token",
 				Data: nil,
 			})
+			return
 		}
 
 		token, err := jwt.ParseWithClaims(tokenString, &types.UserClaim{}, func(token *jwt.Token) (interface{}, error) {

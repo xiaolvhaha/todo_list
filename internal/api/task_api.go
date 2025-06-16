@@ -3,25 +3,26 @@ package api
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/go-logr/logr"
 	"net/http"
 	"time"
 	"todolist/internal/types"
 	"todolist/internal/types/request"
 	"todolist/internal/types/response"
+	"todolist/pkg/logger"
 )
 
 type TaskServiceInterface interface {
 	CreateTask(ctx context.Context, task *types.TaskDomain) (int64, error)
+	GetTaskList(ctx context.Context, page int64) ([]*types.TaskDomain, error)
 }
 
 type TaskApi struct {
 	service         TaskServiceInterface
 	categoryService CategoryServiceInterface
-	log             logr.Logger
+	log             logger.Logger
 }
 
-func NewTaskApi(service TaskServiceInterface, categoryService CategoryServiceInterface, log logr.Logger) *TaskApi {
+func NewTaskApi(service TaskServiceInterface, categoryService CategoryServiceInterface, log logger.Logger) *TaskApi {
 	return &TaskApi{
 		service:         service,
 		categoryService: categoryService,
@@ -32,6 +33,7 @@ func NewTaskApi(service TaskServiceInterface, categoryService CategoryServiceInt
 func (api *TaskApi) RegisterRouter(engine *gin.Engine) {
 	group := engine.Group("/task")
 	group.POST("/create", api.CreateTask)
+	group.GET("/list", api.GetList)
 }
 
 func (api *TaskApi) CreateTask(ctx *gin.Context) {
@@ -42,6 +44,8 @@ func (api *TaskApi) CreateTask(ctx *gin.Context) {
 			Msg:  "invalid param",
 			Data: nil,
 		})
+
+		return
 	}
 
 	category, err := api.categoryService.GetCategoryById(ctx, req.CategoryId)
@@ -51,17 +55,25 @@ func (api *TaskApi) CreateTask(ctx *gin.Context) {
 			Msg:  "invalid param",
 			Data: nil,
 		})
+
+		return
 	}
 
 	layout := "2006-01-02 15:04:05"
 
 	t, err := time.Parse(layout, req.Deadline)
 	if err != nil {
+		api.log.Error("parse time error", logger.Field{
+			Key:   "error",
+			Value: err.Error(),
+		})
 		ctx.JSON(http.StatusBadRequest, types.Result{
 			Code: 4,
 			Msg:  "invalid param",
 			Data: nil,
 		})
+
+		return
 	}
 
 	// 转换为 int64 毫秒级时间戳
@@ -82,6 +94,8 @@ func (api *TaskApi) CreateTask(ctx *gin.Context) {
 			Msg:  "internal server error",
 			Data: nil,
 		})
+
+		return
 	}
 
 	domain := types.TaskDomain{
@@ -104,6 +118,31 @@ func (api *TaskApi) CreateTask(ctx *gin.Context) {
 			Deadline: req.Deadline,
 			Info:     domain,
 		},
+	})
+
+}
+
+func (api *TaskApi) GetList(ctx *gin.Context) {
+	var req request.GetTaskListRequest
+	if err := ctx.Bind(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, types.Result{
+			Code: 4,
+			Msg:  "invalid param",
+		})
+	}
+
+	list, err := api.service.GetTaskList(ctx, req.Page)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, types.Result{
+			Code: 5,
+			Msg:  "internal server error",
+		})
+	}
+
+	ctx.JSON(http.StatusOK, types.Result{
+		Code: 0,
+		Msg:  "success",
+		Data: list,
 	})
 
 	return
